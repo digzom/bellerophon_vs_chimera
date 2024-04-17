@@ -1,35 +1,15 @@
 import gleam/io
 import gleam/erlang
-import gleam/int
 import shellout
 import gleam/result
 import gleam/string
 import enigmas.{type Enigma, EnigmaError, EnigmaRec}
-import styles.{Command, DarkRed, Italic, LightGrey, Normal, PlayerName}
+import styles.{Command, Italic, LightGrey, Normal, PlayerName}
 import gleam/dict
-
-const initial_message = "\n\n\"Após anos de investigação e busca obcessiva, você chega ao\r
-labirinto indicado pela sua última pista. Guiado pela visão que\r
-recebeu do mago Merlin, o Elixir da Vida estava à poucos\r
-passos de ser finalmente seu.\n
-Perdendo-se e encontrando-se entre os caminhos, uma luz ao longe\r
-sinaliza a sua vitória.\n
-Avançando seu caminho, na penumbra algo se move lentamente, impossível\r
-de identificar à primeira vista. Ao aproximar-se, uma voz imponente\r
-ecoa, magiamente acendendo dezenas de tochas ao seu redor, revelando\r
-o dono da aterrorizante voz\"\n"
-
-pub opaque type Player {
-  PlayerStats(name: String, health: Int, lucky: Int, attack: Int)
+import types/shared_types.{
+  type Dragon, type Player, type Session, DragonStats, PlayerStats, SessionInfo,
 }
-
-pub opaque type Session {
-  SessionInfo(wrong_answers: Int, right_answers: Int)
-}
-
-pub opaque type Dragon {
-  DragonStats(name: String, health: Int, lucky: Int, attack: Int)
-}
+import messages
 
 type TurnInfo {
   Turn(
@@ -41,7 +21,7 @@ type TurnInfo {
 }
 
 pub fn main() {
-  initial_message
+  messages.initial_message
   |> styles.format_message(Italic, LightGrey)
   |> io.println()
 
@@ -52,25 +32,25 @@ pub fn main() {
       Command,
     ))
 
-  dragon_message("Quem me acorda de meu duradouro sono?")
+  messages.dragon_message("Quem me acorda de meu duradouro sono?")
   |> result.unwrap("")
   |> styles.format_message(Normal, styles.AsciiDragon)
   |> io.println()
 
   case get_name("Diga-me teu nome.") {
     Ok(player_name) -> {
+      let styled_player_name =
+        player_name
+        |> string.trim()
+        |> styles.format_message(Normal, PlayerName)
+
       let player_stats =
-        PlayerStats(
-          name: string.trim(player_name),
-          health: 20,
-          lucky: 20,
-          attack: 5,
-        )
+        PlayerStats(name: styled_player_name, health: 20, lucky: 20, attack: 5)
 
       let dragon_stats =
         DragonStats(name: "Alduin", health: 40, lucky: 10, attack: 5)
 
-      rules(player_name)
+      messages.rules(player_stats)
       start_game(
         turn_number: 1,
         player: player_stats,
@@ -86,28 +66,13 @@ pub fn main() {
   }
 }
 
-fn dragon_message(message) {
-  shellout.command(
-    run: "cowsay",
-    with: ["-f", "dragon", message],
-    in: ".",
-    opt: [],
-  )
-}
-
 pub fn start_game(
   turn_number turn_number: Int,
   player player: Player,
   dragon dragon: Dragon,
   session session: Session,
 ) {
-  io.println("Vida: " <> int.to_string(player.health) <> "\n")
-  io.println(
-    "Respostas corretas: " <> int.to_string(session.right_answers) <> "\n",
-  )
-  io.println(
-    "Respostas incorretas: " <> int.to_string(session.wrong_answers) <> "\n",
-  )
+  messages.session_stats(session, player, dragon)
 
   case player.health > 0 && dragon.health > 0 {
     True -> {
@@ -132,14 +97,7 @@ pub fn start_game(
     False -> {
       case dragon.health {
         0 -> {
-          io.println(
-            "Parabéns "
-            <> player.name
-            <> ", sua jornada chegou ao fim, e a minha também.\r
-Que ecoe para o mundo que "
-            <> player.name
-            <> " libertou o poderoso Alduin de sua tediosa vida mundana.",
-          )
+          messages.victory(player)
 
           ""
         }
@@ -147,11 +105,7 @@ Que ecoe para o mundo que "
         _ ->
           case player.health {
             0 -> {
-              io.println(
-                player.name
-                <> ", você provou-se apenas mais um tolo que desafia o poder da magia antiga.\r
-Vá para teu descanso, pois tua jornada nesse plano chegou ao fim.",
-              )
+              messages.loss(player)
               ""
             }
 
@@ -224,26 +178,12 @@ fn get_name(message) {
   let styled_message =
     shellout.style(message, with: style, custom: styles.lookups)
 
+  let player_answer_marker =
+    styles.format_message("\n»» ", Normal, PlayerName)
+
   use response <- result.try(erlang.get_line(
-    prompt: styled_message <> "\n»» ",
+    prompt: styled_message <> player_answer_marker,
   ))
 
   Ok(response)
-}
-
-fn rules(player_name) {
-  let player_name = string.trim(player_name)
-
-  io.println(
-    styles.format_message("\n\nAs regras são as seguintes, ", Normal, DarkRed)
-    <> styles.format_message(player_name, Normal, PlayerName)
-    <> styles.format_message(
-      ". Para sair deste labirinto com vida, você precisará responder meus enigmas.\r
-A cada erro seu, um corte será feito em seu corpo. A cada acerto, o corte será feito\r
-em mim.\n
-Vamos começar...\"",
-      Normal,
-      DarkRed,
-    ),
-  )
 }
