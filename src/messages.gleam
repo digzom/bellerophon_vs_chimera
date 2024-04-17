@@ -2,10 +2,12 @@ import shellout
 import gleam/int
 import gleam/io
 import gleam/string
-import styles.{Bold, Command, DarkRed, Normal, Strike, format_message}
+import styles.{
+  Bold, DarkRed, Italic, LightGrey, Normal, PlayerName, format_message,
+}
 import types/shared_types.{type Dragon, type Player, type Session}
 
-pub const initial_message = "\n\n\"Após anos de investigação e busca obsessiva, você chega ao\r
+const initial_message = "\n\n\"Após anos de investigação e busca obsessiva, você chega ao\r
 labirinto indicado pela sua última pista. Guiado pela visão que\r
 recebeu do mago Merlin, o Elixir da Vida estava à poucos\r
 passos de ser finalmente seu.\n
@@ -15,6 +17,12 @@ Avançando seu caminho, na penumbra algo se move lentamente, impossível\r
 de identificar à primeira vista. Ao aproximar-se, uma voz imponente\r
 ecoa, magicamente acendendo dezenas de tochas ao seu redor, revelando\r
 o dono da aterrorizante voz\"\n"
+
+pub fn initial() -> Nil {
+  initial_message
+  |> styles.format_message(Italic, LightGrey)
+  |> io.println()
+}
 
 pub fn dragon_message(message) {
   shellout.command(
@@ -27,15 +35,17 @@ pub fn dragon_message(message) {
 
 pub fn session_stats(session: Session, player: Player, _dragon: Dragon) {
   io.println(
-    "Vida: "
-    <> int.to_string(player.health)
+    "------------- "
+    <> player.name
+    <> " -------------\n"
+    <> format_message("Vida: ", Bold, LightGrey)
+    <> format_message(int.to_string(player.health), Normal, PlayerName)
     <> "\n"
-    <> "Respostas corretas: "
-    <> int.to_string(session.right_answers)
+    <> format_message("Respostas corretas: ", Bold, LightGrey)
+    <> format_message(int.to_string(session.right_answers), Normal, PlayerName)
     <> "\n"
-    <> "Respostas incorretas: "
-    <> int.to_string(session.wrong_answers)
-    <> "\n",
+    <> format_message("Respostas incorretas: ", Bold, LightGrey)
+    <> format_message(int.to_string(session.wrong_answers), Normal, PlayerName),
   )
 }
 
@@ -60,23 +70,38 @@ Vá para teu descanso, pois tua jornada nesse plano chegou ao fim.",
 
 pub fn rules(player: Player) {
   let player_name = string.trim(player.name)
+  let five_rules =
+    format_message(
+      ", nesse momento estamos sob 4 regras imutáveis:\n\n",
+      Italic,
+      DarkRed,
+    )
 
-  io.println(
-    format_message("\n As regras são as seguintes, ", Normal, DarkRed)
-    <> player_name
-    <> ". "
-    <> format_message("Para sair deste labirinto com vida, você precisará\r 
-responder meus enigmas. A cada erro seu, um corte\r
-será feito em seu corpo. A cada acerto, o corte será\r
-feito em mim.\n" <> format_message(
-        "Suas respostas devem ser exatas. Não esqueça acentuação.\n
-Não é culpa minha, " <> format_message(
-            "o programador ficou com preguiça de tratar isso",
-            Strike,
-            Command,
-          ) <> format_message(" a magia funciona assim.\n", Bold, DarkRed),
-        Bold,
-        DarkRed,
-      ), Normal, DarkRed),
-  )
+  let rule1 =
+    format_message(
+      "  1. Para sair deste labirinto com vida, você precisará responder meus enigmas.\n",
+      Bold,
+      DarkRed,
+    )
+  let rule2 =
+    format_message(
+      "  2. A cada erro seu, um corte será feito em seu corpo.\n",
+      Bold,
+      DarkRed,
+    )
+  let rule3 =
+    format_message(
+      "  3. A cada acerto, o corte será feito em mim.\n",
+      Bold,
+      DarkRed,
+    )
+  let rule4 =
+    format_message(
+      "  4. Suas respostas devem ser exatamente o que estou esperando. Não esqueça acentuação.\n",
+      Bold,
+      DarkRed,
+    )
+
+  string.concat(["\n", player_name, five_rules, rule1, rule2, rule3, rule4])
+  |> io.println()
 }

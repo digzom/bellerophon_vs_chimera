@@ -3,8 +3,9 @@ import gleam/erlang
 import shellout
 import gleam/result
 import gleam/string
+import gleam/int
 import enigmas.{type Enigma, EnigmaError, EnigmaRec}
-import styles.{Command, Italic, LightGrey, Normal, PlayerName}
+import styles.{Command, Italic, Normal, PlayerName}
 import gleam/dict
 import types/shared_types.{
   type Dragon, type Player, type Session, DragonStats, PlayerStats, SessionInfo,
@@ -21,9 +22,7 @@ type TurnInfo {
 }
 
 pub fn main() {
-  messages.initial_message
-  |> styles.format_message(Italic, LightGrey)
-  |> io.println()
+  messages.initial()
 
   let _ =
     erlang.get_line(prompt: styles.format_message(
@@ -59,10 +58,7 @@ pub fn main() {
       )
     }
 
-    Error(_error) -> {
-      io.println("Hmmm... Esse não é um nome válido.")
-      ""
-    }
+    Error(_error) -> io.println("Hmmm... Esse não é um nome válido.")
   }
 }
 
@@ -71,15 +67,18 @@ pub fn start_game(
   player player: Player,
   dragon dragon: Dragon,
   session session: Session,
-) {
+) -> Nil {
   messages.session_stats(session, player, dragon)
+
+  let _response = erlang.get_line(prompt: "-------------------------------------")
 
   case player.health > 0 && dragon.health > 0 {
     True -> {
       let enigma: Enigma = enigmas.get_enigma()
 
       case enigma {
-        EnigmaError(question: Nil, answer: Nil, error: error) -> io.debug(error)
+        EnigmaError(question: Nil, answer: Nil, error: error) ->
+          io.println(error)
         EnigmaRec(question, answer) -> {
           let turn_info =
             Turn(
@@ -95,31 +94,37 @@ pub fn start_game(
     }
 
     False -> {
-      case dragon.health {
-        0 -> {
-          messages.victory(player)
-
-          ""
-        }
-
-        _ ->
-          case player.health {
-            0 -> {
-              messages.loss(player)
-              ""
-            }
-
-            _ -> {
-              io.println("oxe")
-              ""
-            }
-          }
-      }
+      check_health(dragon, player)
     }
   }
 }
 
-fn turn(turn_info: TurnInfo, session: Session) {
+fn check_health(dragon: Dragon, player: Player) -> Nil {
+  case dragon.health {
+    0 -> messages.victory(player)
+
+    _ -> {
+      check_player_health(player)
+    }
+  }
+}
+
+fn check_player_health(player: Player) -> Nil {
+  case player.health {
+    0 -> messages.loss(player)
+
+    _ -> io.println("oxe")
+  }
+}
+
+fn turn(turn_info: TurnInfo, session: Session) -> Nil {
+  // transformar turn da charada em string "primeira, segunda..." e criar um
+  // map para acessar o valor com o numero
+  io.println(
+    "------------- CHARADA "
+    <> int.to_string(turn_info.turn_number)
+    <> " -------------\n",
+  )
   let response = erlang.get_line(prompt: turn_info.question)
 
   let user_answer =
