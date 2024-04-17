@@ -16,7 +16,7 @@ pub type MessageDisplays {
   Italic
   Bold
   Normal
-  Blink
+  Strike
 }
 
 pub const lookups: Lookups = [
@@ -69,6 +69,6 @@ fn get_display(display: MessageDisplays) -> String {
     Italic -> "italic"
     Bold -> "bold"
     Normal -> "normal"
-    Blink -> "blink"
+    Strike -> "strike"
   }
 }
