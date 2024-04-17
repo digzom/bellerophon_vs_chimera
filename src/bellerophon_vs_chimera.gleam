@@ -3,9 +3,8 @@ import gleam/erlang
 import shellout
 import gleam/result
 import gleam/string
-import gleam/int
 import enigmas.{type Enigma, EnigmaError, EnigmaRec}
-import styles.{Command, Italic, Normal, PlayerName}
+import styles.{Command, DarkRed, Italic, Normal, PlayerName}
 import gleam/dict
 import types/shared_types.{
   type Dragon, type Player, type Session, DragonStats, PlayerStats, SessionInfo,
@@ -20,6 +19,19 @@ type TurnInfo {
     characters: #(Player, Dragon),
   )
 }
+
+const enigma_numbers = [
+  #(1, "------------- PRIMEIRA -------------"),
+  #(2, "------------- SEGUNDA --------------"),
+  #(3, "------------- TERCEIRA -------------"),
+  #(4, "-------------- QUARTA --------------"),
+  #(5, "-------------- QUINTA --------------"),
+  #(6, "-------------- SEXTA ---------------"),
+  #(7, "-------------- SÉTIMA --------------"),
+  #(8, "-------------- OITAVA --------------"),
+  #(9, "--------------- NONA ---------------"),
+  #(10, "-------------- DÉCIMA --------------"),
+]
 
 pub fn main() {
   messages.initial()
@@ -70,7 +82,8 @@ pub fn start_game(
 ) -> Nil {
   messages.session_stats(session, player, dragon)
 
-  let _response = erlang.get_line(prompt: "-------------------------------------")
+  let _response =
+    erlang.get_line(prompt: "-------------------------------------")
 
   case player.health > 0 && dragon.health > 0 {
     True -> {
@@ -120,15 +133,20 @@ fn check_player_health(player: Player) -> Nil {
 fn turn(turn_info: TurnInfo, session: Session) -> Nil {
   // transformar turn da charada em string "primeira, segunda..." e criar um
   // map para acessar o valor com o numero
-  io.println(
-    "------------- CHARADA "
-    <> int.to_string(turn_info.turn_number)
-    <> " -------------\n",
-  )
-  let response = erlang.get_line(prompt: turn_info.question)
+  let enigma_message =
+    dict.from_list(enigma_numbers)
+    |> dict.get(turn_info.turn_number)
+    |> result.unwrap("FINAL")
+
+  styles.format_message(enigma_message, Normal, DarkRed)
+  |> io.println()
 
   let user_answer =
-    result.unwrap(response, "porraaaa")
+    erlang.get_line(
+      prompt: styles.format_message(turn_info.question, Italic, DarkRed)
+      <> player_answer_marker(),
+    )
+    |> result.unwrap("Error")
     |> string.trim()
 
   let is_right_answer = turn_info.answer == user_answer
@@ -183,12 +201,13 @@ fn get_name(message) {
   let styled_message =
     shellout.style(message, with: style, custom: styles.lookups)
 
-  let player_answer_marker =
-    styles.format_message("\n»» ", Normal, PlayerName)
-
   use response <- result.try(erlang.get_line(
-    prompt: styled_message <> player_answer_marker,
+    prompt: styled_message <> player_answer_marker(),
   ))
 
   Ok(response)
+}
+
+fn player_answer_marker() {
+  styles.format_message("\n»» ", Normal, PlayerName)
 }
