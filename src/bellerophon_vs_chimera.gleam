@@ -3,11 +3,13 @@ import gleam/erlang
 import shellout
 import gleam/result
 import gleam/string
-import enigmas.{type Enigma, EnigmaError, EnigmaRec}
 import styles.{Command, DarkRed, Italic, Normal, PlayerName}
+import db/connection.{start_db}
+import enigmas
 import gleam/dict
 import types/shared_types.{
-  type Dragon, type Player, type Session, DragonStats, PlayerStats, SessionInfo,
+  type Dragon, type Player, type Session, DragonStats, EnigmaError, EnigmaRec,
+  PlayerStats, SessionInfo,
 }
 import messages
 
@@ -34,6 +36,7 @@ const enigma_numbers = [
 ]
 
 pub fn main() {
+  start_db()
   messages.initial()
 
   let _ =
@@ -66,7 +69,11 @@ pub fn main() {
         turn_number: 1,
         player: player_stats,
         dragon: dragon_stats,
-        session: SessionInfo(wrong_answers: 0, right_answers: 0),
+        session: SessionInfo(
+          wrong_answers: 0,
+          right_answers: 0,
+          current_enigma_list: enigmas.enigmas,
+        ),
       )
     }
 
@@ -85,13 +92,17 @@ pub fn start_game(
   let _response =
     erlang.get_line(prompt: "-------------------------------------")
 
+  case turn_number {
+    11 -> messages.victory(player)
+    _ -> Nil
+  }
+
   case player.health > 0 && dragon.health > 0 {
     True -> {
-      let enigma: Enigma = enigmas.get_enigma()
+      let #(enigma, updatred_session) = enigmas.get_enigma(session)
 
       case enigma {
-        EnigmaError(question: Nil, answer: Nil, error: error) ->
-          io.println(error)
+        EnigmaError(error) -> io.println(error)
         EnigmaRec(question, answer) -> {
           let turn_info =
             Turn(
@@ -101,7 +112,7 @@ pub fn start_game(
               characters: #(player, dragon),
             )
 
-          turn(turn_info, session)
+          turn(turn_info, updatred_session)
         }
       }
     }

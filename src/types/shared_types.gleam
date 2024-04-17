@@ -3,9 +3,18 @@ pub type Player {
 }
 
 pub type Session {
-  SessionInfo(wrong_answers: Int, right_answers: Int)
+  SessionInfo(
+    wrong_answers: Int,
+    right_answers: Int,
+    current_enigma_list: List(Enigma),
+  )
 }
 
 pub type Dragon {
   DragonStats(name: String, health: Int, lucky: Int, attack: Int)
+}
+
+pub type Enigma {
+  EnigmaRec(question: String, answer: String)
+  EnigmaError(String)
 }

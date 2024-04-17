@@ -33,7 +33,7 @@ pub fn dragon_message(message) {
   )
 }
 
-pub fn session_stats(session: Session, player: Player, _dragon: Dragon) {
+pub fn session_stats(session: Session, player: Player, dragon: Dragon) {
   io.println(
     "------------- "
     <> player.name
@@ -45,7 +45,10 @@ pub fn session_stats(session: Session, player: Player, _dragon: Dragon) {
     <> format_message(int.to_string(session.right_answers), Normal, PlayerName)
     <> "\n"
     <> format_message("Respostas incorretas: ", Bold, LightGrey)
-    <> format_message(int.to_string(session.wrong_answers), Normal, PlayerName),
+    <> format_message(int.to_string(session.wrong_answers), Normal, PlayerName)
+    <> "\n"
+    <> format_message("Vida de Alduin: ", Bold, LightGrey)
+    <> format_message(int.to_string(dragon.health), Normal, DarkRed),
   )
 }
 
