@@ -11,7 +11,7 @@ const enigmas = [
   EnigmaRec(
     question: "Sou o guardião das certezas. Defino muito bem tudo aquilo que declaro.\r
 Seus erros serão encontrados antes mesmo de serem cometidos.\n
-O que eu sou?\n",
+Qual característica de duas palavras eu sou?\n",
     answer: "Tipagem estática",
   ),
   EnigmaRec(
