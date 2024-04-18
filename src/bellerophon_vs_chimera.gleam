@@ -1,12 +1,12 @@
 import gleam/io
 import gleam/int
-import gleam/list
 import gleam/erlang
 import gleam/float
 import gleam/result
 import gleam/string
 import styles.{Command, DarkRed, Italic, Normal, PlayerName}
 import repo/connection
+import repo/player.{get_players, save_player}
 import enigmas
 import gleam/dict
 import types/shared_types.{
@@ -81,6 +81,8 @@ pub fn start_game(
   session session: Session,
 ) -> Nil {
   messages.session_stats(session, player, dragon)
+
+  let _updated_player = get_players()
 
   let _response =
     erlang.get_line(prompt: "-------------------------------------")

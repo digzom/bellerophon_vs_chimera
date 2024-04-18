@@ -2,38 +2,39 @@ import repo/connection
 import gleam/dynamic
 import sqlight
 import types/shared_types.{type Player}
+import datetime
 
-pub fn create_table() {
+pub fn get_players() {
   use conn <- connection.start()
+  let player_decoder = dynamic.tuple2(dynamic.int, dynamic.float)
 
-  let sql =
-    "
-  create table if not exists player (
-    player_id integer primary key autoincrement,
-    name text,
-    health integer,
-    lucky integer,
-    attack integer
-  );
-  "
+  let sql = "select player_id, health from character;"
 
-  sqlight.exec(sql, conn)
+  sqlight.query(sql, on: conn, with: [], expecting: player_decoder)
 }
 
 pub fn save_player(player: Player) {
   use conn <- connection.start()
-  let player_decoder =
-    dynamic.tuple4(dynamic.string, dynamic.float, dynamic.int, dynamic.int)
 
   let sql =
-    "insert into player(name, health, lucky, attack) values (?, ?, ?, ?);"
+    "insert into character (
+      name,
+      health,
+      lucky,
+      attack,
+      ctype,
+      inserted_at,
+      updated_at
+    ) values (?, ?, ?, ?, 'player', ?, ?);"
 
   let params = [
     sqlight.text(player.name),
     sqlight.float(player.health),
     sqlight.int(player.lucky),
     sqlight.int(player.attack),
+    sqlight.text(datetime.utc_now()),
+    sqlight.text(datetime.utc_now()),
   ]
 
-  sqlight.query(sql, on: conn, with: params, expecting: player_decoder)
+  sqlight.query(sql, on: conn, with: params, expecting: Ok)
 }
