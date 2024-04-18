@@ -1,10 +1,12 @@
 import gleam/io
+import gleam/int
+import gleam/list
 import gleam/erlang
-import shellout
+import gleam/float
 import gleam/result
 import gleam/string
 import styles.{Command, DarkRed, Italic, Normal, PlayerName}
-import db/connection.{start_db}
+import repo/connection
 import enigmas
 import gleam/dict
 import types/shared_types.{
@@ -35,8 +37,11 @@ const enigma_numbers = [
   #(10, "-------------- DÉCIMA --------------"),
 ]
 
+@external(erlang, "math", "log")
+pub fn log(n: Float) -> Float
+
 pub fn main() {
-  start_db()
+  let _setup_tables = connection.setup_tables()
   messages.initial()
 
   let _ =
@@ -51,34 +56,22 @@ pub fn main() {
   |> styles.format_message(Normal, styles.AsciiDragon)
   |> io.println()
 
-  case get_name("Diga-me teu nome.") {
-    Ok(player_name) -> {
-      let styled_player_name =
-        player_name
-        |> string.trim()
-        |> styles.format_message(Normal, PlayerName)
+  let player = get_player()
 
-      let player_stats =
-        PlayerStats(name: styled_player_name, health: 20, lucky: 20, attack: 5)
+  let dragon_stats =
+    DragonStats(name: "Alduin", health: 11.0, lucky: 1, attack: 5)
 
-      let dragon_stats =
-        DragonStats(name: "Alduin", health: 40, lucky: 10, attack: 5)
-
-      messages.rules(player_stats)
-      start_game(
-        turn_number: 1,
-        player: player_stats,
-        dragon: dragon_stats,
-        session: SessionInfo(
-          wrong_answers: 0,
-          right_answers: 0,
-          current_enigma_list: enigmas.enigmas,
-        ),
-      )
-    }
-
-    Error(_error) -> io.println("Hmmm... Esse não é um nome válido.")
-  }
+  messages.rules(player)
+  start_game(
+    turn_number: 1,
+    player: player,
+    dragon: dragon_stats,
+    session: SessionInfo(
+      wrong_answers: 0,
+      right_answers: 0,
+      current_enigma_list: enigmas.enigmas,
+    ),
+  )
 }
 
 pub fn start_game(
@@ -97,7 +90,7 @@ pub fn start_game(
     _ -> Nil
   }
 
-  case player.health > 0 && dragon.health > 0 {
+  case player.health >. 0.0 && dragon.health >. 0.0 {
     True -> {
       let #(enigma, updatred_session) = enigmas.get_enigma(session)
 
@@ -125,7 +118,7 @@ pub fn start_game(
 
 fn check_health(dragon: Dragon, player: Player) -> Nil {
   case dragon.health {
-    0 -> messages.victory(player)
+    0.0 -> messages.victory(player)
 
     _ -> {
       check_player_health(player)
@@ -134,16 +127,14 @@ fn check_health(dragon: Dragon, player: Player) -> Nil {
 }
 
 fn check_player_health(player: Player) -> Nil {
-  case player.health {
-    0 -> messages.loss(player)
+  case player.health <=. 0.0 {
+    True -> messages.loss(player)
 
-    _ -> io.println("oxe")
+    False -> io.println("Algo deu errado.")
   }
 }
 
 fn turn(turn_info: TurnInfo, session: Session) -> Nil {
-  // transformar turn da charada em string "primeira, segunda..." e criar um
-  // map para acessar o valor com o numero
   let enigma_message =
     dict.from_list(enigma_numbers)
     |> dict.get(turn_info.turn_number)
@@ -165,12 +156,31 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
   let #(player, dragon) = turn_info.characters
   let turn_number = turn_info.turn_number + 1
 
+  let lucky_discount =
+    int.random(player.lucky)
+    |> int.multiply(2)
+    |> int.to_float()
+    |> log()
+    |> float.to_string()
+    |> string.pad_right(5, with: "0")
+    |> string.slice(at_index: 0, length: 5)
+    |> float.parse()
+    |> result.unwrap(0.0)
+
   case is_right_answer {
     True -> {
-      let damage = dragon.health - player.attack
-      let updated_dragon = DragonStats(..dragon, health: damage)
+      let damage = int.to_float(dragon.attack) -. lucky_discount
+      let updated_dragon =
+        DragonStats(..dragon, health: dragon.health -. damage)
 
-      io.println("Parabéns... Você viverá um pouco mais.\n")
+      let message =
+        styles.format_message(
+          "Dano causado: " <> float.to_string(damage),
+          Italic,
+          PlayerName,
+        )
+
+      io.println(message)
 
       start_game(
         turn_number: turn_number,
@@ -184,10 +194,20 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
       )
     }
     False -> {
-      let damage = player.health - dragon.attack
-      let updated_player = PlayerStats(..player, health: damage)
+      let damage = int.to_float(dragon.attack) -. lucky_discount
+      let updated_player =
+        PlayerStats(..player, health: player.health -. damage)
 
-      io.println("Você vai sofrer...")
+      let message =
+        styles.format_message(
+          "Dano recebido: "
+            <> float.to_string(damage)
+            <> "\nMais um passo para seu fim...\n",
+          Italic,
+          DarkRed,
+        )
+
+      io.println(message)
 
       start_game(
         turn_number: turn_number,
@@ -204,21 +224,83 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
 }
 
 // dar um jeito de nao chamar charadas repetidas na mesma sessao
-fn get_name(message) {
-  let style =
-    shellout.display(["italic"])
-    |> dict.merge(from: shellout.color(["dark_red"]))
+fn get_player() -> Player {
+  let total_points = 15
+  io.println(
+    "Você tem "
+    <> int.to_string(total_points)
+    <> " pontos para me descrever seus principais atributos.",
+  )
 
-  let styled_message =
-    shellout.style(message, with: style, custom: styles.lookups)
+  let name_message = styles.format_message("Diga-me teu nome:", Italic, DarkRed)
 
-  use response <- result.try(erlang.get_line(
-    prompt: styled_message <> player_answer_marker(),
-  ))
+  let name =
+    erlang.get_line(prompt: name_message <> player_answer_marker())
+    |> result.unwrap("")
+    |> string.trim()
+    |> styles.format_message(Normal, PlayerName)
 
-  Ok(response)
+  let health = get_attr("Quão resistente você é?", total_points)
+  let total_points = total_points - health
+
+  let lucky = get_attr("Quão sortudo você é?", total_points)
+  let total_points = total_points - lucky
+
+  let attack = get_attr("Quão forte consegues ferir alguém?", total_points)
+  let total_points = total_points - attack
+
+  case total_points {
+    total if total == 0 ->
+      PlayerStats(
+        name: name,
+        health: int.to_float(health),
+        lucky: lucky,
+        attack: attack,
+      )
+
+    total if total > 1 -> {
+      io.println(styles.format_message(
+        "Ora vamos... Você está se subestimando. Vamos tentar de novo.",
+        Italic,
+        DarkRed,
+      ))
+      get_player()
+    }
+
+    total if total < 0 -> {
+      io.println(styles.format_message(
+        "Hmmm... Você se valoriza muito, eu entendo. Mas precisamos de algo mais realista.",
+        Italic,
+        DarkRed,
+      ))
+      get_player()
+    }
+
+    _ -> get_player()
+  }
 }
 
 fn player_answer_marker() {
   styles.format_message("\n»» ", Normal, PlayerName)
+}
+
+fn get_attr(message, total_points) {
+  erlang.get_line(prompt(message, total_points) <> player_answer_marker())
+  |> result.map(fn(health_value) { string.trim(health_value) })
+  |> result.unwrap("")
+  |> parse_to_int()
+}
+
+fn parse_to_int(value: String) -> Int {
+  case int.parse(value) {
+    Ok(int) -> int
+    Error(_error) -> 0
+  }
+}
+
+fn prompt(message, total_points) {
+  let remaining_points_message =
+    " (pontos: " <> int.to_string(total_points) <> ")"
+
+  styles.format_message(message <> remaining_points_message, Italic, DarkRed)
 }

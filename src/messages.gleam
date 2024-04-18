@@ -1,4 +1,5 @@
 import shellout
+import gleam/float
 import gleam/int
 import gleam/io
 import gleam/string
@@ -39,7 +40,7 @@ pub fn session_stats(session: Session, player: Player, dragon: Dragon) {
     <> player.name
     <> " -------------\n"
     <> format_message("Vida: ", Bold, LightGrey)
-    <> format_message(int.to_string(player.health), Normal, PlayerName)
+    <> format_message(float.to_string(player.health), Normal, PlayerName)
     <> "\n"
     <> format_message("Respostas corretas: ", Bold, LightGrey)
     <> format_message(int.to_string(session.right_answers), Normal, PlayerName)
@@ -48,7 +49,7 @@ pub fn session_stats(session: Session, player: Player, dragon: Dragon) {
     <> format_message(int.to_string(session.wrong_answers), Normal, PlayerName)
     <> "\n"
     <> format_message("Vida de Alduin: ", Bold, LightGrey)
-    <> format_message(int.to_string(dragon.health), Normal, DarkRed),
+    <> format_message(float.to_string(dragon.health), Normal, DarkRed),
   )
 }
 

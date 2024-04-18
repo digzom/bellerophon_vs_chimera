@@ -1,5 +1,5 @@
 pub type Player {
-  PlayerStats(name: String, health: Int, lucky: Int, attack: Int)
+  PlayerStats(name: String, health: Float, lucky: Int, attack: Int)
 }
 
 pub type Session {
@@ -11,7 +11,7 @@ pub type Session {
 }
 
 pub type Dragon {
-  DragonStats(name: String, health: Int, lucky: Int, attack: Int)
+  DragonStats(name: String, health: Float, lucky: Int, attack: Int)
 }
 
 pub type Enigma {

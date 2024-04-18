@@ -11,7 +11,7 @@ Qual característica de duas palavras eu sou?\r",
     answer: "Tipagem estática",
   ),
   EnigmaRec(
-    question: "Meus valores são imutáveis. Amo a pureza e a transformação segura.\n
+    question: "Meus valores são imutáveis. Amo a pureza e a transformação segura.\r
 Qual paradigma de programação sou eu?\r",
     answer: "Funcional",
   ),
