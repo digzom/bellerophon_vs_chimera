@@ -64,7 +64,7 @@ pub fn main() {
   let player = get_player()
 
   let dragon_stats =
-    DragonStats(name: "Alduin", health: 11.0, lucky: 1, attack: 5)
+    DragonStats(name: "Alduin", health: 20.0, lucky: 1, attack: 8)
 
   messages.rules(player)
   start_game(
@@ -93,7 +93,7 @@ pub fn start_game(
     erlang.get_line(prompt: "-------------------------------------\n")
 
   case turn_number {
-    9 -> {
+    7 -> {
       let _ =
         erlang.get_line(prompt: styles.format_message(
           messages.victory(player),
@@ -197,12 +197,14 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
     |> int.multiply(2)
     |> int.to_float()
     |> convert_zero_value()
-    |> log()
+    |> calculate_log()
     |> float.to_string()
     |> string.pad_right(5, with: "0")
     |> string.slice(at_index: 0, length: 5)
     |> float.parse()
     |> result.unwrap(0.0)
+
+  io.debug(lucky_value)
 
   case is_right_answer {
     True -> {
@@ -261,7 +263,7 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
 }
 
 fn get_player() -> Player {
-  let total_points = 20
+  let total_points = 17
   io.println(
     "Você tem "
     <> int.to_string(total_points)
@@ -346,4 +348,8 @@ fn convert_zero_value(value) {
     0.0 -> 0.1
     _ -> value
   }
+}
+
+fn calculate_log(value) {
+  1.0 +. {log(value -. 1.0)}
 }

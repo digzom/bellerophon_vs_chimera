@@ -80,7 +80,7 @@ pub fn rules(player: Player) {
 
   let rule1 =
     format_message(
-      "  1. Para sair deste labirinto com vida, você precisará responder meus enigmas.\n",
+      "  1. Para sair deste labirinto com vida, você precisará 6 enigmas ou causar minha morte.\n",
       Bold,
       DarkRed,
     )
