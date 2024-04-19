@@ -10,6 +10,7 @@ pub type MessageColors {
   PlayerName
   Command
   AsciiDragon
+  Reddy
 }
 
 pub type MessageDisplays {
@@ -27,8 +28,9 @@ pub const lookups: Lookups = [
       #("mint", ["182", "255", "234"]),
       #("pink", ["255", "175", "243"]),
       #("dark_red", ["189", "10", "9"]),
+      #("reddy", ["195", "17", "10"]),
       #("light_grey", ["150", "150", "150"]),
-      #("command", ["60", "60", "60"]),
+      #("command", ["100", "100", "100"]),
       #("white", ["200", "200", "199"]),
       #("player_name", ["0", "200", "100"]),
       #("ascii_dragon", ["200", "50", "50"]),
@@ -51,6 +53,15 @@ pub fn format_message(
   shellout.style(message, with: style, custom: lookups)
 }
 
+pub fn press_message(message) {
+  let message = message <> "\n"
+  format_message(message, Italic, Command)
+}
+
+pub fn title_style(line) {
+  format_message(line, Normal, Reddy)
+}
+
 fn get_color(color: MessageColors) -> String {
   case color {
     DarkRed -> "dark_red"
@@ -61,6 +72,7 @@ fn get_color(color: MessageColors) -> String {
     PlayerName -> "player_name"
     Command -> "command"
     AsciiDragon -> "ascii_dragon"
+    Reddy -> "reddy"
   }
 }
 

@@ -17,7 +17,7 @@ Qual paradigma de programação sou eu?\r",
   ),
   EnigmaRec(
     question: "Falo a linguagem das máquinas, traduzindo suas ideias em instruções que\r
-elas compreendem.\r
+elas compreendem.\n
 Quem sou eu?\r",
     answer: "Compilador",
   ),
@@ -36,7 +36,7 @@ Quem sou eu?\r",
   ),
   EnigmaRec(
     question: "Te ajudo a cuidar das suas várias versões e os conflitos entre elas.\r
-Muitos me usam todos os dias, mas poucos sabem do que eu realmente sou capaz.",
+Muitos me usam todos os dias, mas poucos sabem do que eu realmente sou capaz.\rQuem sou eu?",
     answer: "Git",
   ),
   EnigmaRec(
@@ -45,8 +45,8 @@ quem nunca me usou. Por aqueles de constroem a Web, eu sou praticamente inevitá
     answer: "Javascript",
   ),
   EnigmaRec(
-    question: "Se a internet é o oceano, eu sou o navio que explora o mares das infinitas informações.\r
-Quando minha replicação foi permitida, uma guerra iniciou-se.\r",
+    question: "Se a internet é o oceano, eu sou o navio que explora o mares das infinitas informações.\n
+Quando minha replicação foi permitida, uma guerra iniciou-se.",
     answer: "Browser",
   ),
   EnigmaRec(

@@ -1,4 +1,5 @@
 import gleam/io
+import shellout
 import gleam/int
 import gleam/erlang
 import gleam/float
@@ -6,7 +7,7 @@ import gleam/result
 import gleam/string
 import styles.{Command, DarkRed, Italic, Normal, PlayerName}
 import repo/connection
-import repo/player.{get_players, save_player}
+import repo/player.{get_players}
 import enigmas
 import gleam/dict
 import types/shared_types.{
@@ -40,7 +41,11 @@ const enigma_numbers = [
 @external(erlang, "math", "log")
 pub fn log(n: Float) -> Float
 
+@external(erlang, "Elixir.ElixirExtension", "title")
+fn title() -> Nil
+
 pub fn main() {
+  let _ = title()
   let _setup_tables = connection.setup_tables()
   messages.initial()
 
@@ -85,10 +90,18 @@ pub fn start_game(
   let _updated_player = get_players()
 
   let _response =
-    erlang.get_line(prompt: "-------------------------------------")
+    erlang.get_line(prompt: "-------------------------------------\n")
 
   case turn_number {
-    11 -> messages.victory(player)
+    9 -> {
+      let _ =
+        erlang.get_line(prompt: styles.format_message(
+          messages.victory(player),
+          Italic,
+          PlayerName,
+        ))
+      shellout.exit(0)
+    }
     _ -> Nil
   }
 
@@ -114,13 +127,23 @@ pub fn start_game(
 
     False -> {
       check_health(dragon, player)
+      Nil
     }
   }
 }
 
-fn check_health(dragon: Dragon, player: Player) -> Nil {
-  case dragon.health {
-    0.0 -> messages.victory(player)
+fn check_health(dragon: Dragon, player: Player) {
+  case dragon.health <=. 0.0 {
+    True -> {
+      let _ =
+        erlang.get_line(prompt: styles.format_message(
+          messages.victory(player),
+          Italic,
+          PlayerName,
+        ))
+
+      shellout.exit(0)
+    }
 
     _ -> {
       check_player_health(player)
@@ -128,11 +151,22 @@ fn check_health(dragon: Dragon, player: Player) -> Nil {
   }
 }
 
-fn check_player_health(player: Player) -> Nil {
+fn check_player_health(player: Player) {
   case player.health <=. 0.0 {
-    True -> messages.loss(player)
+    True -> {
+      let _ =
+        erlang.get_line(prompt: styles.format_message(
+          messages.loss(player),
+          Italic,
+          DarkRed,
+        ))
+      shellout.exit(0)
+    }
 
-    False -> io.println("Algo deu errado.")
+    False -> {
+      io.println("Algo deu errado.")
+      shellout.exit(0)
+    }
   }
 }
 
@@ -158,10 +192,11 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
   let #(player, dragon) = turn_info.characters
   let turn_number = turn_info.turn_number + 1
 
-  let lucky_discount =
+  let lucky_value =
     int.random(player.lucky)
     |> int.multiply(2)
     |> int.to_float()
+    |> convert_zero_value()
     |> log()
     |> float.to_string()
     |> string.pad_right(5, with: "0")
@@ -171,7 +206,7 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
 
   case is_right_answer {
     True -> {
-      let damage = int.to_float(dragon.attack) -. lucky_discount
+      let damage = int.to_float(player.attack) +. lucky_value
       let updated_dragon =
         DragonStats(..dragon, health: dragon.health -. damage)
 
@@ -196,7 +231,7 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
       )
     }
     False -> {
-      let damage = int.to_float(dragon.attack) -. lucky_discount
+      let damage = int.to_float(dragon.attack) -. lucky_value
       let updated_player =
         PlayerStats(..player, health: player.health -. damage)
 
@@ -225,13 +260,12 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
   }
 }
 
-// dar um jeito de nao chamar charadas repetidas na mesma sessao
 fn get_player() -> Player {
-  let total_points = 15
+  let total_points = 20
   io.println(
     "Você tem "
     <> int.to_string(total_points)
-    <> " pontos para me descrever seus principais atributos.",
+    <> " pontos para me descrever seus três principais atributos.",
   )
 
   let name_message = styles.format_message("Diga-me teu nome:", Italic, DarkRed)
@@ -305,4 +339,11 @@ fn prompt(message, total_points) {
     " (pontos: " <> int.to_string(total_points) <> ")"
 
   styles.format_message(message <> remaining_points_message, Italic, DarkRed)
+}
+
+fn convert_zero_value(value) {
+  case value {
+    0.0 -> 0.1
+    _ -> value
+  }
 }

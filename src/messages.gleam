@@ -8,7 +8,8 @@ import styles.{
 }
 import types/shared_types.{type Dragon, type Player, type Session}
 
-const initial_message = "\n\n\"Após anos de investigação e busca obsessiva, você chega ao\r
+const initial_message = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+\"Após anos de investigação e busca obsessiva, você chega ao\r
 labirinto indicado pela sua última pista. Guiado pela visão que\r
 recebeu do mago Merlin, o Elixir da Vida estava à poucos\r
 passos de ser finalmente seu.\n
@@ -54,22 +55,18 @@ pub fn session_stats(session: Session, player: Player, dragon: Dragon) {
 }
 
 pub fn victory(player: Player) {
-  io.println(
-    "Parabéns "
-    <> player.name
-    <> ", sua jornada chegou ao fim, e a minha também.\r
+  "Parabéns "
+  <> player.name
+  <> ", sua jornada chegou ao fim, e a minha também.\r
 Que ecoe para o mundo que "
-    <> player.name
-    <> " libertou o poderoso Alduin de sua tediosa vida mundana.",
-  )
+  <> player.name
+  <> " libertou o poderoso Alduin de sua tediosa vida mundana. O Elixir da Vida te espera."
 }
 
 pub fn loss(player: Player) {
-  io.println(
-    player.name
-    <> ", você provou-se apenas mais um tolo que desafia o poder da magia antiga.\r
-Vá para teu descanso, pois tua jornada nesse plano chegou ao fim.",
-  )
+  player.name
+  <> ", você provou-se apenas mais um tolo que desafia o poder da magia antiga.\r
+Vá para teu descanso, pois tua jornada nesse plano chegou ao fim."
 }
 
 pub fn rules(player: Player) {
