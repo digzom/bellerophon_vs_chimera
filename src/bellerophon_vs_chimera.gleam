@@ -1,6 +1,7 @@
 import gleam/io
 import shellout
 import gleam/int
+import gleam/order.{Eq, Gt, Lt}
 import gleam/erlang
 import gleam/float
 import gleam/result
@@ -26,16 +27,12 @@ type TurnInfo {
 }
 
 const enigma_numbers = [
-  #(1, "------------- PRIMEIRA -------------"),
-  #(2, "------------- SEGUNDA --------------"),
-  #(3, "------------- TERCEIRA -------------"),
-  #(4, "-------------- QUARTA --------------"),
-  #(5, "-------------- QUINTA --------------"),
-  #(6, "-------------- SEXTA ---------------"),
-  #(7, "-------------- SÉTIMA --------------"),
-  #(8, "-------------- OITAVA --------------"),
-  #(9, "--------------- NONA ---------------"),
-  #(10, "-------------- DÉCIMA --------------"),
+  #(1, "-------------------------- PRIMEIRA --------------------------"),
+  #(2, "-------------------------- SEGUNDA ----------------------------"),
+  #(3, "-------------------------- TERCEIRA --------------------------"),
+  #(4, "--------------------------- QUARTA ----------------------------"),
+  #(5, "--------------------------- QUINTA ----------------------------"),
+  #(6, "--------------------------- SEXTA ------------------------------"),
 ]
 
 @external(erlang, "math", "log")
@@ -196,15 +193,13 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
     int.random(player.lucky)
     |> int.multiply(2)
     |> int.to_float()
-    |> convert_zero_value()
-    |> calculate_log()
+    |> float.clamp(min: 0.1, max: 100.0)
+    |> calculate_log(player.lucky)
     |> float.to_string()
     |> string.pad_right(5, with: "0")
     |> string.slice(at_index: 0, length: 5)
     |> float.parse()
     |> result.unwrap(0.0)
-
-  io.debug(lucky_value)
 
   case is_right_answer {
     True -> {
@@ -263,7 +258,7 @@ fn turn(turn_info: TurnInfo, session: Session) -> Nil {
 }
 
 fn get_player() -> Player {
-  let total_points = 17
+  let total_points = 22
   io.println(
     "Você tem "
     <> int.to_string(total_points)
@@ -343,13 +338,11 @@ fn prompt(message, total_points) {
   styles.format_message(message <> remaining_points_message, Italic, DarkRed)
 }
 
-fn convert_zero_value(value) {
-  case value {
-    0.0 -> 0.1
-    _ -> value
+fn calculate_log(value, lucky) {
+  let lucky = int.to_float(lucky)
+  let value = float.clamp(value -. 1.0, min: 0.1, max: 100.0)
+  case float.compare(lucky, 5.0) {
+    Eq | Gt -> 1.3 *. log(value)
+    Lt -> 0.68 *. log(value)
   }
-}
-
-fn calculate_log(value) {
-  1.0 +. {log(value -. 1.0)}
 }
