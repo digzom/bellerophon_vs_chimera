@@ -1,6 +1,6 @@
-import gleam/list
-import gleam/io
 import gleam/int
+import gleam/iterator
+import gleam/list
 import gleam/result
 import types/shared_types.{type Session, EnigmaError, EnigmaRec, SessionInfo}
 
@@ -64,7 +64,8 @@ pub fn get_enigma(session: Session) {
 
   let current_enigma =
     session.current_enigma_list
-    |> list.at(index)
+    |> iterator.from_list()
+    |> iterator.at(index)
     |> result.unwrap(EnigmaError("Aconteceu algo ruim..."))
 
   case current_enigma {

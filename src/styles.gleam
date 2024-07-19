@@ -1,5 +1,5 @@
-import shellout.{type Lookups}
 import gleam/dict
+import shellout.{type Lookups}
 
 pub type MessageColors {
   DarkRed
@@ -24,14 +24,10 @@ pub const lookups: Lookups = [
   #(
     ["color", "background"],
     [
-      #("buttercup", ["252", "226", "174"]),
-      #("mint", ["182", "255", "234"]),
-      #("pink", ["255", "175", "243"]),
-      #("dark_red", ["189", "10", "9"]),
-      #("reddy", ["195", "17", "10"]),
-      #("light_grey", ["150", "150", "150"]),
-      #("command", ["100", "100", "100"]),
-      #("white", ["200", "200", "199"]),
+      #("buttercup", ["252", "226", "174"]), #("mint", ["182", "255", "234"]),
+      #("pink", ["255", "175", "243"]), #("dark_red", ["189", "10", "9"]),
+      #("reddy", ["195", "17", "10"]), #("light_grey", ["150", "150", "150"]),
+      #("command", ["100", "100", "100"]), #("white", ["200", "200", "199"]),
       #("player_name", ["0", "200", "100"]),
       #("ascii_dragon", ["200", "50", "50"]),
     ],

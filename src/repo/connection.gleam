@@ -1,5 +1,4 @@
 import sqlight
-import gleam/io
 
 pub fn setup_tables() {
   use conn <- start()

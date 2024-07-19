@@ -1,8 +1,8 @@
-import shellout
 import gleam/float
 import gleam/int
 import gleam/io
 import gleam/string
+import shellout
 import styles.{
   Bold, DarkRed, Italic, LightGrey, Normal, PlayerName, format_message,
 }

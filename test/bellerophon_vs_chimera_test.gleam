@@ -1,6 +1,6 @@
+import datetime
 import gleeunit
 import gleeunit/should
-import datetime
 
 pub fn main() {
   gleeunit.main()

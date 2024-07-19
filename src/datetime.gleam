@@ -1,22 +1,16 @@
 import gleam/dict.{type Dict}
+import gleam/int
+import gleam/list
 import gleam/result
 import gleam/string
-import gleam/list
-import gleam/int
 
 pub opaque type DateTime {
-  Calendar
   Day
   Hour
-  Microsecond
   Minute
   Month
   Second
-  StdOffset
-  TimeZone
-  UtcOffset
   Year
-  ZoneAbbr
 }
 
 type Result(a, b) {
@@ -34,7 +28,7 @@ fn elixir_new_time(
 ) -> Result(Dict(DateTime, a), Nil)
 
 pub fn new_time(hour, minute, second) {
-  let assert Ok(time_params) = elixir_new_time(hour, minute, second)
+  let Ok(time_params) = elixir_new_time(hour, minute, second)
 
   let assert [hour, minute, second] =
     time_params

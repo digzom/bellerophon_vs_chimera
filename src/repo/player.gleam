@@ -1,8 +1,8 @@
-import repo/connection
+import datetime
 import gleam/dynamic
+import repo/connection
 import sqlight
 import types/shared_types.{type Player}
-import datetime
 
 pub fn get_players() {
   use conn <- connection.start()
